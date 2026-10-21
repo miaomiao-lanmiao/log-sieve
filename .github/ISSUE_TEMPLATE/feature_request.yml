@@ -1,0 +1,21 @@
+name: Feature request / 功能建议
+description: Describe the task you need to complete.
+title: 'feat: '
+body:
+  - type: textarea
+    id: workflow
+    attributes:
+      label: What are you trying to do?
+      description: Include a sanitized example of the desired output.
+    validations:
+      required: true
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround and why it is insufficient
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested approach (optional)

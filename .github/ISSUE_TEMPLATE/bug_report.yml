@@ -1,0 +1,31 @@
+name: Bug report / 缺陷反馈
+description: Report a reproducible problem using sanitized data.
+title: 'bug: '
+body:
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Node.js, and Log Sieve versions or commit ID.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Command and minimal reproduction
+      description: Remove credentials and private repository content.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result and workflow impact
+    validations:
+      required: true
+
