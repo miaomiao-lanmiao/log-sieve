@@ -1,0 +1,6 @@
+2026-10-22T02:00:00Z INFO starting service
+2026-10-22T02:00:01Z ERROR ECONNREFUSED 127.0.0.1:5432 token=synthetic-demo-a
+    at connect (database.js:18:4)
+2026-10-22T02:00:02Z ERROR ECONNREFUSED 127.0.0.1:5432 token=synthetic-demo-b
+2026-10-22T02:00:03Z WARN upstream timeout after 5000ms
+{"level":50,"time":"2026-10-22T02:00:04Z","msg":"EACCES opening /var/app/cache","api_key":"synthetic-demo-not-a-real-key"}
