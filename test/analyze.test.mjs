@@ -96,4 +96,5 @@ test('input limits reject oversized data before report generation', () => {
   assert.throws(() => analyze('x'.repeat(16 * 1024 * 1024 + 1)), /16 MiB/);
   assert.throws(() => parseEntries('x'.repeat(64 * 1024 + 1)), /64 KiB/);
   assert.throws(() => parseEntries('a\n'.repeat(100001)), /100000/);
+  assert.throws(() => analyze(`ERROR token=${'x'.repeat(64 * 1024)}`), /64 KiB/);
 });

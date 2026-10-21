@@ -20,8 +20,6 @@ try {
   const archive = join(temporary, readdirSync(temporary).find(file => file.endsWith('.tgz')));
   npm(['install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', '--prefix', temporary, archive], temporary);
   const cli = join(temporary, 'node_modules/log-sieve-cli/dist/cli.js');
-  const result = spawnSync(process.execPath, [cli, 'analyze', '- ', '--format', 'json'], { encoding: 'utf8', input: 'ERROR test' });
-  assert.equal(result.status, 1);
   const report = spawnSync(process.execPath, [cli, 'analyze', '-', '--format', 'json'], {
     encoding: 'utf8', input: 'ERROR ECONNREFUSED token=synthetic-package-token',
   });

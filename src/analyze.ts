@@ -29,15 +29,20 @@ function level(value: unknown): Level {
 }
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 
-export function parseEntries(text: string): { entries: Entry[]; inputLines: number; unparsedJsonLines: number } {
+function inputLines(text: string): string[] {
   const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/);
   if (lines.at(-1) === '') lines.pop();
   if (lines.length > 100000) throw new Error('Input exceeds the 100000-line limit.');
+  for (const line of lines) if (Buffer.byteLength(line) > 64 * 1024) throw new Error('A line exceeds the 64 KiB limit.');
+  return lines;
+}
+
+export function parseEntries(text: string): { entries: Entry[]; inputLines: number; unparsedJsonLines: number } {
+  const lines = inputLines(text);
   const entries: Entry[] = [];
   let unparsedJsonLines = 0;
   for (let index = 0; index < lines.length; index++) {
     const raw = lines[index]!;
-    if (Buffer.byteLength(raw) > 64 * 1024) throw new Error('A line exceeds the 64 KiB limit.');
     if (!raw.trim()) continue;
     const clean = displayText(raw);
     let message = clean;
@@ -96,6 +101,7 @@ export function fingerprint(message: string): string {
 
 export function analyze(input: string): Report {
   if (Buffer.byteLength(input) > 16 * 1024 * 1024) throw new Error('Input exceeds the 16 MiB limit.');
+  inputLines(input);
   const sanitized = redact(input);
   const parsed = parseEntries(sanitized.text);
   const counts: Record<Level, number> = { trace: 0, debug: 0, info: 0, warning: 0, error: 0, fatal: 0, unknown: 0 };
