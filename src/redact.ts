@@ -1,7 +1,10 @@
+import { stripTerminalControls } from './text.js';
+
 export interface Redaction { text: string; matches: number }
 const sensitiveName = /^(?:api[_-]?key|access[_-]?token|refresh[_-]?token|token|password|passwd|secret|client[_-]?secret|authorization|secret[_-]?access[_-]?key|access[_-]?key(?:[_-]?id)?)$/i;
 
 function redactPlain(text: string): Redaction {
+  text = stripTerminalControls(text);
   let matches = 0;
   const replace = (pattern: RegExp, transform: (...groups: string[]) => string): void => {
     text = text.replace(pattern, (...groups: string[]) => { matches++; return transform(...groups); });
@@ -28,6 +31,7 @@ function redactPlain(text: string): Redaction {
 }
 
 export function redact(input: string): Redaction {
+  input = stripTerminalControls(input);
   let matches = 0;
   // Preserve line numbering even when a multiline private key is removed.
   input = input.replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g, block => {
@@ -41,7 +45,7 @@ export function redact(input: string): Redaction {
     if (Array.isArray(value)) return value.map(visit);
     if (typeof value === 'object' && value !== null) {
       return Object.fromEntries(Object.entries(value).map(([key, child]) => {
-        if (sensitiveName.test(key) && child !== '' && child !== null) {
+        if (sensitiveName.test(stripTerminalControls(key)) && child !== '' && child !== null) {
           matches++; return [key, '[REDACTED]'];
         }
         return [key, visit(child)];

@@ -2,6 +2,7 @@
 import { closeSync, constants, fstatSync, openSync, readSync, writeFileSync } from 'node:fs';
 import { analyze } from './analyze.js';
 import { render } from './render.js';
+import { VERSION } from './version.js';
 
 const help = `Log Sieve — offline log triage
 
@@ -47,7 +48,7 @@ process.stdout.on('error', (error: NodeJS.ErrnoException) => {
 try {
   const args = process.argv.slice(2);
   if (args.length === 0 || (args.length === 1 && args[0] === '--help')) process.stdout.write(help);
-  else if (args.length === 1 && args[0] === '--version') process.stdout.write('0.1.0\n');
+  else if (args.length === 1 && args[0] === '--version') process.stdout.write(`${VERSION}\n`);
   else {
     const input = args[1];
     if (args[0] !== 'analyze' || !input || (input.startsWith('-') && input !== '-')) throw new Error('Expected analyze FILE. Use --help for usage.');

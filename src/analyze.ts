@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
 import { redact } from './redact.js';
+import { stripTerminalControls } from './text.js';
+import { VERSION } from './version.js';
 
 export type Level = 'trace' | 'debug' | 'info' | 'warning' | 'error' | 'fatal' | 'unknown';
 export interface Entry { line: number; level: Level; timestamp: string | null; message: string; stack: string[] }
@@ -9,15 +11,13 @@ export interface Group {
   firstLine: number; lastLine: number; sampleStack: string[]; suggestions: Suggestion[];
 }
 export interface Report {
-  schemaVersion: 1; toolVersion: '0.1.0'; inputLines: number; entries: number;
+  schemaVersion: 1; toolVersion: typeof VERSION; inputLines: number; entries: number;
   unparsedJsonLines: number; redactionMatches: number;
   counts: Record<Level, number>; groups: Group[]; disclaimer: string;
 }
 
 export function displayText(value: string): string {
-  return value.replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '')
-    .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '')
-    .replace(/[\x00-\x08\x0b-\x1f\x7f-\x9f\u202a-\u202e\u2066-\u2069]/g, '').trim();
+  return stripTerminalControls(value).trim();
 }
 
 function level(value: unknown): Level {
@@ -120,7 +120,7 @@ export function analyze(input: string): Report {
         .map(({ code, explanation, checks }) => ({ code, explanation, checks: [...checks] })) });
   }
   const rank = { fatal: 0, error: 1, warning: 2, unknown: 3, info: 4, debug: 5, trace: 6 };
-  return { schemaVersion: 1, toolVersion: '0.1.0', inputLines: parsed.inputLines,
+  return { schemaVersion: 1, toolVersion: VERSION, inputLines: parsed.inputLines,
     entries: parsed.entries.length, unparsedJsonLines: parsed.unparsedJsonLines,
     redactionMatches: sanitized.matches, counts,
     groups: [...groups.values()].sort((a, b) => rank[a.level] - rank[b.level] || b.count - a.count || a.firstLine - b.firstLine),
