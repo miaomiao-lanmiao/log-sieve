@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,6 +31,7 @@ try {
     ? spawnSync(process.env.ComSpec ?? 'cmd.exe', ['/d', '/s', '/c', 'logsieve.cmd --version'], { cwd: binDirectory, encoding: 'utf8', windowsHide: true })
     : spawnSync(join(binDirectory, 'logsieve'), ['--version'], { encoding: 'utf8' });
   assert.equal(installed.status, 0, installed.stderr);
-  assert.equal(installed.stdout, '0.1.0\n');
+  const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+  assert.equal(installed.stdout, `${manifest.version}\n`);
   console.log('Offline tarball installation, installed command, log parsing and synthetic credential redaction passed.');
 } finally { rmSync(temporary, { recursive: true, force: true }); }

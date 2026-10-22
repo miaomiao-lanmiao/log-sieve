@@ -93,6 +93,10 @@ GitHub/AWS access-key patterns, and private-key blocks. Structured JSON fields a
 string messages are inspected before grouping. Match counts are pattern matches,
 not a count of proven secrets.
 
+Terminal styling and direction controls are normalized before matching, including
+escaped controls in decoded JSON values and credential field names. Input size
+and line limits are checked before this normalization.
+
 **Redaction is incomplete.** Unrecognized secrets, personal data, hosts and paths
 may remain. Logs and generated reports require human review before sharing.
 This is not a general-purpose anonymizer or a security guarantee.

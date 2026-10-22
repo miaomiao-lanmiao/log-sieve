@@ -2,6 +2,10 @@
 
 Version: 0.1.0, 2026-10-22.
 
+Maintenance v0.1.1 (2026-10-23): normalize terminal controls before credential
+matching, including decoded JSON values/keys; retain original input limits and
+line references. Tool-version metadata is shared across CLI and report formats.
+
 ## Purpose
 
 Developers need to turn noisy application logs into a short, reviewable incident
