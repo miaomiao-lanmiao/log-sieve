@@ -72,7 +72,10 @@ are replaced before grouping and do not appear in the report. See the committed
 ## 输入与诊断 / Input and diagnostics
 
 - Text levels: TRACE, DEBUG, INFO, WARN/WARNING, ERROR, FATAL/CRITICAL; optional
-  ISO-like timestamp prefixes and common multiline stack traces.
+  ISO-like timestamp prefixes, Python logging comma timestamps and multiline traces.
+- Standalone Node-style `TypeError:`/`Error [CODE]:` headers are recognized as
+  errors. Common Python tracebacks keep source context and chained exceptions
+  together; an explicit log error header retains its original description.
 - JSON Lines: `message`/`msg`, `level`/`severity`, `timestamp`/`time`/`ts`, and
   `error`/`err` message/stack fields. Numeric Pino levels 10–60 are supported.
 - Malformed JSON falls back to text and is counted. Entries without a recognized
@@ -87,7 +90,7 @@ The CLI never changes the source log or runs a proposed fix.
 
 ## 隐私与限制 / Privacy and limits
 
-Redaction covers common key/password/token assignments, bearer credentials,
+Redaction covers common key/password/token assignments, Basic and bearer credentials,
 credential query parameters (including percent-encoded names), URL userinfo,
 GitHub/AWS access-key patterns, and private-key blocks. Structured JSON fields and
 string messages are inspected before grouping. Match counts are pattern matches,
