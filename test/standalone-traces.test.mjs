@@ -40,6 +40,11 @@ test('adjacent independent tracebacks remain separate occurrences', () => {
 test('ordinary colon text is not inferred to be an exception', () => {
   assert.equal(analyze('Notice: service started\nINFO healthy').counts.error, 0);
 });
+test('bare and coded Node Error headers are recognized', () => {
+  for (const header of ['Error: ENOENT missing', 'Error [ERR_INVALID_ARG_TYPE]: invalid', 'Exception: failed']) {
+    assert.equal(analyze(header).counts.error, 1, header);
+  }
+});
 test('HTTP Basic credentials and values containing a redaction marker are omitted', () => {
   const credential = 'c3ludGhldGljOm5vdC1hLXJlYWwta2V5';
   const report = analyze(`ERROR Authorization: Basic ${credential}\nERROR password="synthetic-secret[REDACTED]suffix"\n`);

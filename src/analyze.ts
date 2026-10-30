@@ -99,7 +99,7 @@ export function parseEntries(text: string): { entries: Entry[]; inputLines: numb
         }
       }
       traceback = undefined;
-      if (severity === 'unknown' && /^(?:[A-Za-z_$][\w.$]*(?:Error|Exception)(?:\s+\[[A-Z0-9_]+\])?):(?:\s|$)/.test(message)) severity = 'error';
+      if (severity === 'unknown' && /^(?:[A-Za-z_$][\w.$]*)?(?:Error|Exception)(?:\s+\[[A-Z0-9_]+\])?:(?:\s|$)/.test(message)) severity = 'error';
       if (previous && !timestamp && severity === 'unknown' &&
           (/^\s+(?:at\s|File\s|\^|\.\.\.)/.test(raw) || /^(?:Traceback |Caused by:|[\w.]+(?:Error|Exception):)/.test(clean))) {
         previous.stack.push(clean);
