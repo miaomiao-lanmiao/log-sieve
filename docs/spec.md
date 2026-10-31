@@ -6,6 +6,10 @@ Maintenance v0.1.1 (2026-10-23): normalize terminal controls before credential
 matching, including decoded JSON values/keys; retain original input limits and
 line references. Tool-version metadata is shared across CLI and report formats.
 
+Feature v0.2.0 (2026-10-31): recognize common standalone Node exception headers,
+Python tracebacks/chains and comma-millisecond log timestamps. Redact HTTP Basic
+credentials and exact-placeholder matches without skipping larger secret values.
+
 ## Purpose
 
 Developers need to turn noisy application logs into a short, reviewable incident

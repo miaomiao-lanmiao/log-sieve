@@ -11,7 +11,7 @@ function redactPlain(text: string): Redaction {
   };
   replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
     block => `[PRIVATE KEY REDACTED]${'\n'.repeat((block.match(/\n/g) ?? []).length)}`);
-  replace(/(\bBearer\s+)[A-Za-z0-9._~+\/-]+=*/gi, (_all, prefix) => `${prefix}[REDACTED]`);
+  replace(/(\b(?:Bearer|Basic)\s+)[A-Za-z0-9._~+\/-]+=*/gi, (_all, prefix) => `${prefix}[REDACTED]`);
   replace(/\b([a-z][a-z0-9+.-]*:\/\/)[^\s/@]+@/gi, (_all, protocol) => `${protocol}[REDACTED]@`);
   text = text.replace(/([?&])([^=&#\s"'<>]+)=([^&#\s"'<>]*)/g, (all: string, delimiter: string, key: string) => {
     let decoded: string;
@@ -22,7 +22,8 @@ function redactPlain(text: string): Redaction {
   });
   text = text.replace(/(["']?((?:api[_-]?key|access[_-]?token|refresh[_-]?token|token|password|passwd|secret|client[_-]?secret|authorization|secret[_-]?access[_-]?key|access[_-]?key(?:[_-]?id)?))["']?\s*[:=]\s*)("(?:\\.|[^"\\])*"|'[^']*'|[^\s,;}&#"']+)/gi,
     (all: string, prefix: string, key: string, value: string) => {
-      if (!sensitiveName.test(key) || value.includes('[REDACTED]')) return all;
+      const unquoted = /^["']/.test(value) ? value.slice(1, -1) : value;
+      if (!sensitiveName.test(key) || unquoted === '[REDACTED]') return all;
       matches++;
       return `${prefix}"[REDACTED]"`;
     });

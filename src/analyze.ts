@@ -41,6 +41,7 @@ export function parseEntries(text: string): { entries: Entry[]; inputLines: numb
   const lines = inputLines(text);
   const entries: Entry[] = [];
   let unparsedJsonLines = 0;
+  let traceback: { entry: Entry; fromHeader: boolean; finished: boolean; chained: boolean } | undefined;
   for (let index = 0; index < lines.length; index++) {
     const raw = lines[index]!;
     if (!raw.trim()) continue;
@@ -67,17 +68,45 @@ export function parseEntries(text: string): { entries: Entry[]; inputLines: numb
       } catch { unparsedJsonLines++; }
     }
     if (!json) {
-      const prefix = /^(?:\[?(\d{4}-\d{2}-\d{2}[T ][\d:.]+(?:Z|[+-]\d{2}:?\d{2})?)\]?\s*)?(?:\[?(TRACE|DEBUG|INFO|WARN(?:ING)?|ERROR|FATAL|CRITICAL)\]?\s*[:|-]?\s*)?(.*)$/i.exec(clean)!;
+      const prefix = /^(?:\[?(\d{4}-\d{2}-\d{2}[T ][\d:.,]+(?:Z|[+-]\d{2}:?\d{2})?)\]?\s*)?(?:\[?(TRACE|DEBUG|INFO|WARN(?:ING)?|ERROR|FATAL|CRITICAL)\]?\s*[:|-]?\s*)?(.*)$/i.exec(clean)!;
       timestamp = prefix[1] ?? null;
       severity = level(prefix[2]);
       message = prefix[3] ?? clean;
       const previous = entries.at(-1);
+      if (clean === 'Traceback (most recent call last):') {
+        if (traceback?.finished && !traceback.chained) traceback = undefined;
+        if (!traceback) {
+          const fromHeader = Boolean(previous && ['error', 'fatal'].includes(previous.level) && previous.stack.length === 0);
+          const entry: Entry = fromHeader ? previous! : { line: index + 1, level: 'error', timestamp: null, message: 'Python traceback', stack: [] };
+          if (!fromHeader) entries.push(entry);
+          traceback = { entry, fromHeader, finished: false, chained: false };
+        }
+        traceback.entry.stack.push(clean);
+        traceback.finished = false;
+        traceback.chained = false;
+        continue;
+      }
+      if (traceback && !timestamp && severity === 'unknown') {
+        if (traceback.finished && /^(?:During handling of the above exception|The above exception was the direct cause)/.test(clean)) {
+          traceback.entry.stack.push(clean); traceback.chained = true; continue;
+        }
+        if (!traceback.finished && /^\s/.test(raw)) { traceback.entry.stack.push(clean); continue; }
+        if (!traceback.finished && (/^[A-Za-z_][\w.]*:(?:\s.*)?$/.test(clean) || /^(?:KeyboardInterrupt|SystemExit|GeneratorExit)$/.test(clean))) {
+          traceback.entry.stack.push(clean);
+          if (!traceback.fromHeader) traceback.entry.message = clean;
+          traceback.finished = true;
+          continue;
+        }
+      }
+      traceback = undefined;
+      if (severity === 'unknown' && /^(?:[A-Za-z_$][\w.$]*)?(?:Error|Exception)(?:\s+\[[A-Z0-9_]+\])?:(?:\s|$)/.test(message)) severity = 'error';
       if (previous && !timestamp && severity === 'unknown' &&
           (/^\s+(?:at\s|File\s|\^|\.\.\.)/.test(raw) || /^(?:Traceback |Caused by:|[\w.]+(?:Error|Exception):)/.test(clean))) {
         previous.stack.push(clean);
         continue;
       }
     }
+    if (json) traceback = undefined;
     entries.push({ line: index + 1, level: severity, timestamp, message, stack });
   }
   return { entries, inputLines: lines.length, unparsedJsonLines };
