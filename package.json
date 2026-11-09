@@ -1,6 +1,6 @@
 {
   "name": "log-sieve-cli",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Offline log triage: group repeated errors, redact common credentials, and export reviewable reports.",
   "type": "module",
   "license": "MIT",

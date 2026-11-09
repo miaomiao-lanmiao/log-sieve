@@ -76,6 +76,9 @@ are replaced before grouping and do not appear in the report. See the committed
 - Standalone Node-style `TypeError:`/`Error [CODE]:` headers are recognized as
   errors. Common Python tracebacks keep source context and chained exceptions
   together; an explicit log error header retains its original description.
+  Within an unfinished traceback, indented source remains stack context even
+  when it resembles a log level or JSON. An exception line without a message,
+  such as `ValueError`, still completes that traceback.
 - JSON Lines: `message`/`msg`, `level`/`severity`, `timestamp`/`time`/`ts`, and
   `error`/`err` message/stack fields. Numeric Pino levels 10–60 are supported.
 - Malformed JSON falls back to text and is counted. Entries without a recognized

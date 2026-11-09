@@ -46,6 +46,11 @@ export function parseEntries(text: string): { entries: Entry[]; inputLines: numb
     const raw = lines[index]!;
     if (!raw.trim()) continue;
     const clean = displayText(raw);
+    // A traceback's indented source is context, even when it resembles JSON or a log level.
+    if (traceback && !traceback.finished && /^\s/.test(raw)) {
+      traceback.entry.stack.push(clean);
+      continue;
+    }
     let message = clean;
     let timestamp: string | null = null;
     let severity: Level = 'unknown';
@@ -90,8 +95,7 @@ export function parseEntries(text: string): { entries: Entry[]; inputLines: numb
         if (traceback.finished && /^(?:During handling of the above exception|The above exception was the direct cause)/.test(clean)) {
           traceback.entry.stack.push(clean); traceback.chained = true; continue;
         }
-        if (!traceback.finished && /^\s/.test(raw)) { traceback.entry.stack.push(clean); continue; }
-        if (!traceback.finished && (/^[A-Za-z_][\w.]*:(?:\s.*)?$/.test(clean) || /^(?:KeyboardInterrupt|SystemExit|GeneratorExit)$/.test(clean))) {
+        if (!traceback.finished && /^[A-Za-z_][\w.]*(?::(?:\s.*)?)?$/.test(clean)) {
           traceback.entry.stack.push(clean);
           if (!traceback.fromHeader) traceback.entry.message = clean;
           traceback.finished = true;
