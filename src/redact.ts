@@ -56,7 +56,10 @@ export function redact(input: string): Redaction {
   }
   const text = input.split('\n').map(line => {
     if (line.trim().startsWith('{')) {
-      try { return JSON.stringify(visit(JSON.parse(line) as unknown)); }
+      try {
+        const indentation = /^[\t ]*/.exec(line)![0];
+        return indentation + JSON.stringify(visit(JSON.parse(line) as unknown));
+      }
       catch { /* Malformed JSON is analyzed as text, with the same redaction pass. */ }
     }
     const result = redactPlain(line); matches += result.matches; return result.text;

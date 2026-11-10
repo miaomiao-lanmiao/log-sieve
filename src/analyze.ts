@@ -50,6 +50,7 @@ export function parseEntries(text: string): { entries: Entry[]; inputLines: numb
     let timestamp: string | null = null;
     let severity: Level = 'unknown';
     let json = false;
+    let unparsedJson = false;
     let stack: string[] = [];
     if (clean.startsWith('{')) {
       try {
@@ -64,14 +65,22 @@ export function parseEntries(text: string): { entries: Entry[]; inputLines: numb
           timestamp = typeof time === 'string' || typeof time === 'number' ? displayText(String(time)) : null;
           const trace = value.stack ?? error.stack;
           if (typeof trace === 'string') stack = trace.split(/\r?\n/).map(displayText).filter(Boolean);
-        } else unparsedJsonLines++;
-      } catch { unparsedJsonLines++; }
+        } else unparsedJson = true;
+      } catch { unparsedJson = true; }
     }
     if (!json) {
       const prefix = /^(?:\[?(\d{4}-\d{2}-\d{2}[T ][\d:.,]+(?:Z|[+-]\d{2}:?\d{2})?)\]?\s*)?(?:\[?(TRACE|DEBUG|INFO|WARN(?:ING)?|ERROR|FATAL|CRITICAL)\]?\s*[:|-]?\s*)?(.*)$/i.exec(clean)!;
       timestamp = prefix[1] ?? null;
       severity = level(prefix[2]);
       message = prefix[3] ?? clean;
+    }
+    // Indented source can resemble a log, but a timestamp identifies a new record.
+    if (traceback && !traceback.finished && !timestamp && /^\s/.test(raw)) {
+      traceback.entry.stack.push(clean);
+      continue;
+    }
+    if (unparsedJson) unparsedJsonLines++;
+    if (!json) {
       const previous = entries.at(-1);
       if (clean === 'Traceback (most recent call last):') {
         if (traceback?.finished && !traceback.chained) traceback = undefined;
@@ -86,12 +95,14 @@ export function parseEntries(text: string): { entries: Entry[]; inputLines: numb
         traceback.chained = false;
         continue;
       }
-      if (traceback && !timestamp && severity === 'unknown') {
-        if (traceback.finished && /^(?:During handling of the above exception|The above exception was the direct cause)/.test(clean)) {
+      if (traceback && !timestamp) {
+        if (traceback.finished && severity === 'unknown' && /^(?:During handling of the above exception|The above exception was the direct cause)/.test(clean)) {
           traceback.entry.stack.push(clean); traceback.chained = true; continue;
         }
-        if (!traceback.finished && /^\s/.test(raw)) { traceback.entry.stack.push(clean); continue; }
-        if (!traceback.finished && (/^[A-Za-z_][\w.]*:(?:\s.*)?$/.test(clean) || /^(?:KeyboardInterrupt|SystemExit|GeneratorExit)$/.test(clean))) {
+        const namedException = severity === 'unknown' && /^[A-Za-z_][\w.]*:(?:\s.*)?$/.test(clean);
+        const bareException = /^(?:[A-Za-z_]\w*\.)*[A-Z]\w*$/.test(clean) &&
+          (severity === 'unknown' || clean !== clean.toUpperCase());
+        if (!traceback.finished && (namedException || bareException)) {
           traceback.entry.stack.push(clean);
           if (!traceback.fromHeader) traceback.entry.message = clean;
           traceback.finished = true;

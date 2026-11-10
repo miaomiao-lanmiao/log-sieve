@@ -50,5 +50,5 @@ for (const args of [
 }
 test('help/version are available without input', () => {
   assert.equal(run(['--help']).status, 0);
-  assert.equal(run(['--version']).stdout, '0.2.0\n');
+  assert.equal(run(['--version']).stdout, '0.2.1\n');
 });

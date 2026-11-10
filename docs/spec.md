@@ -10,6 +10,11 @@ Feature v0.2.0 (2026-10-31): recognize common standalone Node exception headers,
 Python tracebacks/chains and comma-millisecond log timestamps. Redact HTTP Basic
 credentials and exact-placeholder matches without skipping larger secret values.
 
+Maintenance v0.2.1 (2026-11-09): retain indented Python traceback source before
+classifying text/JSON log entries, and recognize exception names without a
+message inside traceback context. Timestamped records end incomplete tracebacks
+even when those records are indented.
+
 ## Purpose
 
 Developers need to turn noisy application logs into a short, reviewable incident
