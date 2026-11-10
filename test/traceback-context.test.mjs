@@ -21,7 +21,7 @@ test('indented Python source stays inside its traceback even when it resembles a
 });
 
 test('Python exceptions without a message complete their traceback', () => {
-  for (const exception of ['ValueError', 'custom.EmptyFailure', 'StopIteration']) {
+  for (const exception of ['ValueError', 'custom.EmptyFailure', 'StopIteration', 'Warning', 'ErrorFromPlugin']) {
     const input = `Traceback (most recent call last):\n  File "app.py", line 1, in run\n    raise ${exception}\n${exception}\n`;
     const report = analyze(input);
     assert.equal(report.entries, 1, exception);
@@ -29,6 +29,27 @@ test('Python exceptions without a message complete their traceback', () => {
     assert.equal(report.groups[0].message, exception);
     assert.ok(report.groups[0].sampleStack.includes(exception));
   }
+});
+
+test('timestamped records end an unfinished traceback even when indented', () => {
+  for (const record of [
+    '  2026-11-10T08:00:00Z ERROR separate event',
+    '  {"time":"2026-11-10T08:00:00Z","level":"error","message":"separate event"}',
+  ]) {
+    const input = `Traceback (most recent call last):\n  File "app.py", line 1, in run\n    error = 1 / 0\n${record}`;
+    const parsed = parseEntries(redact(input).text);
+    assert.equal(parsed.entries.length, 2);
+    assert.equal(parsed.entries[1].message, 'separate event');
+    assert.equal(parsed.entries[1].line, 4);
+    assert.equal(parsed.entries[1].timestamp, '2026-11-10T08:00:00Z');
+  }
+});
+
+test('ordinary status text does not become a message-free exception', () => {
+  const input = 'Traceback (most recent call last):\n  File "app.py", line 1, in run\nready';
+  const parsed = parseEntries(input);
+  assert.equal(parsed.entries.length, 2);
+  assert.equal(parsed.entries[1].message, 'ready');
 });
 
 test('chained empty-message exceptions preserve one incident and the next event boundary', () => {

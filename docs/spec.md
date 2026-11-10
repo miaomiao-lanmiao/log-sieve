@@ -12,7 +12,8 @@ credentials and exact-placeholder matches without skipping larger secret values.
 
 Maintenance v0.2.1 (2026-11-09): retain indented Python traceback source before
 classifying text/JSON log entries, and recognize exception names without a
-message inside traceback context. Existing standalone trace handling remains.
+message inside traceback context. Timestamped records end incomplete tracebacks
+even when those records are indented.
 
 ## Purpose
 

@@ -1,6 +1,6 @@
 # v0.2.1 verification
 
-Date: 2026-11-09 (Asia/Shanghai). Local platform: Windows, Node.js v26.13.0.
+Date: 2026-11-10 (Asia/Shanghai). Local platform: Windows, Node.js v26.13.0.
 
 ## Reproduced failures
 
@@ -18,11 +18,15 @@ The fix gives unfinished traceback source context priority over text/JSON log
 classification, preserves JSON-line indentation through redaction, and recognizes
 message-free exception names within a traceback. A fourth regression checks that
 credentials in JSON-looking source remain redacted in Markdown, JSON and HTML.
+An additional regression failed against the first maintenance commit. It confirms
+that a timestamped record after a truncated traceback stays separate in text and
+JSON formats, including when the record is indented. Bare class names such as
+`Warning` and `ErrorFromPlugin` and ordinary status words are also covered.
 
 ## Local gates
 
 - Clean dependency install: `npm ci --ignore-scripts` passed.
-- `npm test`: 38 passed, zero failed, including all previous standalone-trace tests.
+- `npm test`: 40 passed, zero failed, including all previous standalone-trace tests.
 - `npm run build`: passed with strict TypeScript.
 - `npm run check:package`: passed offline tarball installation and the installed
   command's version/parsing/redaction checks.
